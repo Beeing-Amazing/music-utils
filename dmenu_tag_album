@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+folder="$HOME/Music/mpd/"
+script_folder="$HOME/Music/utils/"
+valid_tags="genre date"
+
+# NOTE: album names with " - " may break
+
+change_tags () { \
+    album="$1"
+    tag="$2"
+
+    # list curr tag
+    show_tags=$(uv run "$script_folder/get_tag_album.py" "$album" "--$tag")
+
+    only_album=$(echo $album | awk -F/ '{print $2}')
+    input=$(printf "$show_tags" | dmenu -i -c -l 1 -p "$only_album ($tag): ")
+    [ -z "$input" ] && notify-send "Metadata change canceled" "\'$tag\' not changed" && exit 0
+
+    uv run "$script_folder/set_tag_album.py" "$album" "--$tag" "$input" \
+        && notify-send "Changed album metadata"
+}
+
+selected () { \
+    album=$(
+        find $folder -mindepth 2 -maxdepth 2 -type d -printf "%P\n" \
+        | awk -F/ '{print $2}' \
+        | sort -df \
+        | dmenu -i -c -l 5 -p "Album: " \
+        | awk -F' - ' '{print $1 "/" $1 " - " $2}')
+    [ -z "$album" ] && exit 0
+
+    tag=$(printf "$valid_tags" \
+        | tr ' ' '\n' \
+        | dmenu -c -l 3 -sb "#9ece6a" -p "What tag to edit? ")
+    [ -z "$tag" ] && exit 0
+    if [[ "$valid_tags" == *"$tag"* && "$tag" != *" "* ]]; then
+        change_tags "$album" "$tag"
+    else
+        exit 1
+    fi
+}
+
+selected
