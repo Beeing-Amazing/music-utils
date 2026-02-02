@@ -2,23 +2,23 @@
 
 folder="$HOME/Music/mpd"
 script_folder="$HOME/Music/utils"
-valid_tags="genre date artist"
+valid_tags="genre date albumartist"
 
 # NOTE: album names with " - " may break
 
 change_tags () { \
-    album="$1"
+    track="$1"
     tag="$2"
 
     # list curr tag
-    show_tags=$(uv run "$script_folder/get_tag_album.py" "$album" "--$tag")
+    show_tags=$(uv run "$script_folder/get_tag_track.py" "$track" "--$tag")
 
-    only_album=$(echo $album | awk -F/ '{print $2}')
-    input=$(printf "$show_tags" | dmenu -i -c -l 1 -p "$only_album ($tag): ")
+    only_track=$(echo $album | awk -F/ '{print $3}')
+    input=$(printf "$show_tags" | dmenu -i -c -l 1 -p "$only_track ($tag): ")
     [ -z "$input" ] && notify-send "Metadata change canceled" "\'$tag\' not changed" && exit 0
 
-    uv run "$script_folder/set_tag_album.py" "$album" "--$tag" "$input" \
-        && notify-send "Changed album metadata"
+    uv run "$script_folder/set_tag_track.py" "$track" "--$tag" "$input" \
+        && notify-send "Changed track metadata"
 }
 
 selected () { \
@@ -31,15 +31,21 @@ selected () { \
     album_path=$(find $folder -mindepth 2 -maxdepth 2 -type d -printf "%P\n" \
         | grep "$album")
 
+    track=$(find "$folder/$album_path" -mindepth 1 -maxdepth 1 -type f -name "*.flac" -printf "%P\n" \
+        | sort -df \
+        | dmenu -i -c -l 5 -p "Track: ")
+    [ -z "$track" ] && exit 0
+
     tag=$(printf "$valid_tags" \
         | tr ' ' '\n' \
         | dmenu -c -l 3 -sb "#9ece6a" -p "What tag to edit? ")
     [ -z "$tag" ] && exit 0
     if [[ "$valid_tags" == *"$tag"* && "$tag" != *" "* ]]; then
-        change_tags "$album_path" "$tag"
+        change_tags "$album_path/$track" "$tag"
     else
         exit 1
     fi
 }
 
 selected
+

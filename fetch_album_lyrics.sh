@@ -42,10 +42,9 @@ get_lyrics_for() {
 
 # Attempt a single fetch:
 #   1) Try with TITLE_RAW (may include “(feat ...)”)
-#   2) Try removing "ARTIST - ALBUM - TRACK_NUM " from filename
-#   3) If that yields "" or "null", strip “(…)" and retry
-#   4) If still no lyrics, give up
-#   5) If we do get lyrics, write them verbatim to the .lrc file
+#   2) If that yields "" or "null", strip “(…)" and retry
+#   3) If still no lyrics, give up
+#   4) If we do get lyrics, write them verbatim to the .lrc file
 #
 # Arguments:
 #   $1 = ARTIST
@@ -62,17 +61,18 @@ fetch_for_plain() {
     local lyrics
     lyrics="$(get_lyrics_for "$artist" "$album" "$title_try")"
 
-    # 2. If empty or "null", try stripping "ARTIST - ALBUM - NUM " from title
+    # 2. If empty or "null", try stripping "NUM " from title
     if [ -z "$lyrics" ] || [ "$lyrics" == "null" ]; then
         local wout_header
-        wout_header="$(echo "$title_try" | sed -E "s/${artist} - ${album} - [0-9]* //")"
+        # wout_header="$(echo "$title_try" | sed -E "s/${artist} - ${album} - [0-9]* //")"
+        wout_header="$(echo "$title_try" | sed -E "s/[0-9]* //")"
         if [ "$wout_header" != "$title_try" ]; then
             title_try="$wout_header"
             lyrics="$(get_lyrics_for "$artist" "$album" "$title_try")"
         fi
     fi
 
-    # 3. If empty or "null", try stripping "(...)" from title
+    # 3. If empty or "null", then try stripping "(...)" from title
     if [ -z "$lyrics" ] || [ "$lyrics" == "null" ]; then
         local stripped
         stripped="$(echo "$title_try" | sed -E 's/ *\([^)]*\)//g')"

@@ -2,32 +2,36 @@ from mutagen.flac import FLAC
 from pathlib import Path
 import argparse
 
-MUSIC_DIR = Path("~/Music/mpd/")
+MUSIC_DIR = Path("~/Music/mpd").expanduser()
 
 
 def main(album: Path, tag: str, show_only_first: bool = False):
     # get album path
     # get type of tag, then arg
     # for every song:
-        # set tag to arg
+        # add tag to list
+    # show tags for album
     
     assert album.is_dir()
     p = album.glob("*.flac")
     files = [x for x in p if x.is_file()]
     files.sort()
 
+    all_tags = []
     for track in files:
         audio = FLAC(track)
 
         try:
             tag = audio[tag]
+            all_tags += tag
         except KeyError:
             print("") # blank str for pipe
-        formatted_tags = "; ".join(tag)
-        print(formatted_tags)
 
         if show_only_first:
             break
+
+    formatted_tags = "; ".join(set(all_tags))
+    print(formatted_tags)
 
 
 def init_parser() -> argparse.ArgumentParser:
@@ -38,6 +42,7 @@ def init_parser() -> argparse.ArgumentParser:
     group.add_argument("--date", action="store_true", default=False)
     group.add_argument("--genre", action="store_true", default=False)
     group.add_argument("--artist", action="store_true", default=False)
+    group.add_argument("--albumartist", action="store_true", default=False)
 
     return parser
 
@@ -50,7 +55,10 @@ if __name__ == "__main__":
     dict_args = vars(args)
     assert "album" in dict_args.keys()
     album = dict_args.pop("album", None)
-    album_path = MUSIC_DIR.expanduser() / album
+    album_path = MUSIC_DIR / album
+
+    assert album_path.exists(), album_path
+    assert album_path.is_dir(), album_path
 
     only_passed_tag = {k: v for k, v in dict_args.items() if v}
 
