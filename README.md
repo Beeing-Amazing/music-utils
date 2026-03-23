@@ -8,5 +8,5 @@ utilities and scripts for managing my music library.
 ---
 # roadmmap
 - [x] support for other file extensions
-- [_] fuzzel support
-- [_] more metadata support
+- [ ] fuzzel support
+- [ ] more metadata support
