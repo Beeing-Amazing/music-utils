@@ -1,4 +1,6 @@
 from mutagen.flac import FLAC
+from mutagen.mp3 import MP3
+from mutagen.oggvorbis import OggVorbis as OGG
 from pathlib import Path
 import argparse
 
@@ -8,10 +10,17 @@ MUSIC_DIR = Path("~/Music/mpd").expanduser()
 def main(track: Path, tag: str):
     # get type of tag
     # show tags for track
-    
-    assert track.is_file() and track.suffix == ".flac"
+
+    assert track.is_file() and (suffix := track.suffix) in [".flac", ".mp3", ".ogg"]
     all_tags = []
-    audio = FLAC(track)
+    
+    match suffix:
+        case ".flac":
+            audio = FLAC(track)
+        case ".mp3":
+            audio = MP3(track)
+        case ".ogg":
+            audio = OGG(track)
 
     try:
         tag = audio[tag]
@@ -30,7 +39,9 @@ def init_parser() -> argparse.ArgumentParser:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--date", action="store_true", default=False)
     group.add_argument("--genre", action="store_true", default=False)
+    group.add_argument("--title", action="store_true", default=False)
     group.add_argument("--albumartist", action="store_true", default=False)
+    group.add_argument("--tracknumber", action="store_true", default=False)
 
     return parser
 

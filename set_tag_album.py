@@ -1,4 +1,6 @@
 from mutagen.flac import FLAC
+from mutagen.easyid3 import EasyID3
+from mutagen.oggvorbis import OggVorbis as OGG
 from pathlib import Path
 import argparse
 
@@ -11,14 +13,23 @@ def main(album: Path, tag: str, arg: str):
     # get type of tag, then arg
     # for every song:
         # set tag to arg
+
+    if tag == "albumname": tag = "album"
     
     assert album.is_dir()
-    p = album.glob("*.flac")
+    exts = ("*.flac", "*.mp3", "*.ogg")
+    p = [f for ext in exts for f in album.glob(ext)]
     files = [x for x in p if x.is_file()]
     files.sort()
 
     for track in files:
-        audio = FLAC(track)
+        match track.suffix:
+            case ".flac":
+                audio = FLAC(track)
+            case ".mp3":
+                audio = EasyID3(track)
+            case ".ogg":
+                audio = OGG(track)
 
         expand_arg = arg.split("; ")
         try:
@@ -44,6 +55,7 @@ def init_parser() -> argparse.ArgumentParser:
     group.add_argument("--date", type=str)
     group.add_argument("--genre", type=str)
     group.add_argument("--artist", type=str)
+    group.add_argument("--albumname", type=str)
     group.add_argument("--albumartist", type=str)
 
     return parser

@@ -2,7 +2,7 @@
 
 folder="$HOME/Music/mpd"
 script_folder="$HOME/Music/utils"
-valid_tags="genre date artist"
+valid_tags="genre date artist albumname"
 
 # NOTE: album names with " - " may break
 

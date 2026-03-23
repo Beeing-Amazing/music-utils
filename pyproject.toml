@@ -1,0 +1,8 @@
+[project]
+name = "utils"
+description = "cli utilities for metadata manipulation"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mutagen>=1.47.0",
+]

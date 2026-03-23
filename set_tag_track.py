@@ -1,4 +1,6 @@
 from mutagen.flac import FLAC
+from mutagen.easyid3 import EasyID3
+from mutagen.oggvorbis import OggVorbis as OGG
 from pathlib import Path
 import argparse
 
@@ -10,21 +12,29 @@ def main(track: Path, tag: str, arg: str):
     # get type of tag, then arg
     # set tag to arg
     
-    assert track.is_file() and track.suffix == ".flac"
-    audio = FLAC(track)
+    assert track.is_file() and (suffix := track.suffix) in [".flac", ".mp3", ".ogg"]
+    match suffix:
+        case ".flac":
+            audio = FLAC(track)
+        case ".mp3":
+            audio = EasyID3(track)
+        case ".ogg":
+            audio = OGG(track)
 
     expand_arg = arg.split("; ")
     try:
         old_tag = audio[tag]
+        if old_tag != expand_arg:
+            audio[tag] = expand_arg
     except KeyError:
         old_tag = [""]
         audio[tag] = expand_arg
+
+        pretty_name = track.name.split(" - ")[-1]
+        print(f"{pretty_name}: {old_tag} -> {audio[tag]}")
+    finally:
         if not TEST_MODE:
             audio.save()
-        else:
-            filename = track.name
-        pretty_name = filename.split(" - ")[-1]
-        print(f"{pretty_name}: {old_tag} -> {audio[tag]}")
 
 
 
@@ -36,7 +46,9 @@ def init_parser() -> argparse.ArgumentParser:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--date", type=str)
     group.add_argument("--genre", type=str)
+    group.add_argument("--title", type=str)
     group.add_argument("--albumartist", type=str)
+    group.add_argument("--tracknumber", type=str)
 
     return parser
 

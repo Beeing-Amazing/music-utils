@@ -2,7 +2,7 @@
 
 folder="$HOME/Music/mpd"
 script_folder="$HOME/Music/utils"
-valid_tags="genre date albumartist"
+valid_tags="genre date albumartist tracknumber title"
 
 # NOTE: album names with " - " may break
 
@@ -31,14 +31,14 @@ selected () { \
     album_path=$(find $folder -mindepth 2 -maxdepth 2 -type d -printf "%P\n" \
         | grep "$album")
 
-    track=$(find "$folder/$album_path" -mindepth 1 -maxdepth 1 -type f -name "*.flac" -printf "%P\n" \
+    track=$(find "$folder/$album_path" -mindepth 1 -maxdepth 1 -type f \( -name "*.flac" -o -name "*.mp3" -o -name "*.ogg" -o -name "*.wav" \) -printf "%P\n" \
         | sort -df \
         | dmenu -i -c -l 5 -p "Track: ")
     [ -z "$track" ] && exit 0
 
     tag=$(printf "$valid_tags" \
         | tr ' ' '\n' \
-        | dmenu -c -l 3 -sb "#9ece6a" -p "What tag to edit? ")
+        | dmenu -c -l 5 -sb "#9ece6a" -p "What tag to edit? ")
     [ -z "$tag" ] && exit 0
     if [[ "$valid_tags" == *"$tag"* && "$tag" != *" "* ]]; then
         change_tags "$album_path/$track" "$tag"
