@@ -6,7 +6,7 @@ utilities and scripts for managing my music library.
 - python 3.13
 
 ---
-# roadmmap
+# roadmap
 - [x] support for other file extensions
 - [ ] fuzzel support
 - [ ] more metadata support
